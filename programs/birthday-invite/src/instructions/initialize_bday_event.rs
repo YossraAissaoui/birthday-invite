@@ -3,17 +3,20 @@ use crate::states::*;
 use crate::errors::ErrorCode;
 
 #[derive(Accounts)]
-#[instruction(event_id: u64)]
+#[instruction(event_name: String)]
 pub struct CreateBirthdayEvent<'info> {
     #[account(mut)]
     pub creator: Signer<'info>,
 
     #[account(
         init,
-        seeds = [b"birthday", creator.key().as_ref(), event_id.to_le_bytes().as_ref()],
-        bump,
-        space = 8 + BirthdayEvent::INIT_SPACE,
-        payer = creator
+        payer = creator,
+        space = BirthdayEvent::INIT_SPACE + 8,
+        seeds = [
+            event_name.as_bytes(),
+            EVENT_SEED.as_bytes(),
+            creator.key().as_ref()], 
+        bump  
     )]
     pub birthday_event: Account<'info, BirthdayEvent>,
 
@@ -22,13 +25,12 @@ pub struct CreateBirthdayEvent<'info> {
 
 pub fn handler(
     ctx: Context<CreateBirthdayEvent>,
-    event_id: u64,
     event_name: String,
     event_date: i64,
 ) -> Result<()> {
     // Validate event name
     require!(
-        !event_name.is_empty() && event_name.len() <= 128,
+        !event_name.is_empty() && event_name.len() <= 32,
         ErrorCode::InvalidEventName
     );
 
@@ -39,7 +41,6 @@ pub fn handler(
     // Initialize the birthday event
     let birthday_event = &mut ctx.accounts.birthday_event;
     birthday_event.creator = ctx.accounts.creator.key();
-    birthday_event.event_id = event_id;
     birthday_event.event_name = event_name;
     birthday_event.event_date = event_date;
     birthday_event.coming_count = 0;

@@ -3,14 +3,18 @@ use crate::states::*;
 use crate::errors::ErrorCode;
 
 #[derive(Accounts)]
-#[instruction(event_id: u64)]
+#[instruction(event_name: String)]
 pub struct AddComment<'info> {
     #[account(mut)]
     pub author: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [b"birthday", birthday_event.creator.as_ref(), event_id.to_le_bytes().as_ref()],
+        seeds = [
+            event_name.as_bytes(),
+            EVENT_SEED.as_bytes(),
+            birthday_event.creator.as_ref(), 
+            ],
         bump = birthday_event.bump
     )]
     pub birthday_event: Account<'info, BirthdayEvent>,
@@ -18,7 +22,7 @@ pub struct AddComment<'info> {
 
 pub fn handler(
     ctx: Context<AddComment>,
-    _event_id: u64,
+    _event_name: String,
     comment_text: String,
 ) -> Result<()> {
     // Validate comment text length
@@ -31,7 +35,7 @@ pub fn handler(
 
     // Check if comments list is at max capacity
     require!(
-        birthday_event.comments.len() < 500,
+        birthday_event.comments.len() < 5,
         ErrorCode::TooManyComments
     );
 

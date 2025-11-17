@@ -3,14 +3,18 @@ use crate::states::*;
 use crate::errors::ErrorCode;
 
 #[derive(Accounts)]
-#[instruction(event_id: u64, comment_id: u64)]
+#[instruction(event_name: String, comment_id: u64)]
 pub struct RemoveComment<'info> {
     #[account(mut)]
     pub author: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [b"birthday", birthday_event.creator.as_ref(), event_id.to_le_bytes().as_ref()],
+        seeds = [
+            event_name.as_bytes(),
+            EVENT_SEED.as_bytes(),
+            birthday_event.creator.as_ref(), 
+            ],
         bump = birthday_event.bump
     )]
     pub birthday_event: Account<'info, BirthdayEvent>,
@@ -18,7 +22,7 @@ pub struct RemoveComment<'info> {
 
 pub fn handler(
     ctx: Context<RemoveComment>,
-    _event_id: u64,
+    _event_name: String,
     comment_id: u64,
 ) -> Result<()> {
     let birthday_event = &mut ctx.accounts.birthday_event;

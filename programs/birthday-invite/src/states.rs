@@ -1,19 +1,20 @@
 use anchor_lang::prelude::*;
 
+pub const EVENT_SEED: &str = "EVENT_SEED";
+
 #[account]
 #[derive(InitSpace)]
 pub struct BirthdayEvent {
     pub creator: Pubkey, 
-    pub event_id: u64,
     pub bump: u8,
-    #[max_len(128)]
-    pub event_name: String,     // Max 128 bytes
+    #[max_len(32)]
+    pub event_name: String,     // Max 32 bytes
     pub event_date: i64,         
     pub coming_count: u32,
     pub busy_count: u32,
-    #[max_len(100)]
+    #[max_len(5)]
     pub rsvps: Vec<RSVP>,  // Track who RSVPed
-    #[max_len(500)]      
+    #[max_len(5)]      
     pub comments: Vec<Comment>,  // All comments
 }
 

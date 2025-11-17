@@ -3,20 +3,27 @@ use crate::states::*;
 use crate::errors::ErrorCode;
 
 #[derive(Accounts)]
-#[instruction(event_id: u64)]
+#[instruction(event_name: String)]
 pub struct ConfirmAttendance<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [b"birthday", birthday_event.creator.as_ref(), event_id.to_le_bytes().as_ref()],
+        seeds = [
+            event_name.as_bytes(),
+            EVENT_SEED.as_bytes(), 
+            birthday_event.creator.as_ref()
+            ], 
         bump = birthday_event.bump
     )]
     pub birthday_event: Account<'info, BirthdayEvent>,
 }
 
-pub fn handler(ctx: Context<ConfirmAttendance>, _event_id: u64) -> Result<()> {
+pub fn handler(
+    ctx: Context<ConfirmAttendance>, 
+    _event_name: String
+    ) -> Result<()> {
     let birthday_event = &mut ctx.accounts.birthday_event;
     let signer = ctx.accounts.signer.key();
 
@@ -50,7 +57,7 @@ pub fn handler(ctx: Context<ConfirmAttendance>, _event_id: u64) -> Result<()> {
     } else {
         // Check if RSVP list is at max capacity
         require!(
-            birthday_event.rsvps.len() < 100,
+            birthday_event.rsvps.len() < 5,
             ErrorCode::TooManyRSVPs
         );
 
